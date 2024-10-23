@@ -135,7 +135,7 @@ L18:   const [datasets, setDatasets] = useState<string[]>([]);
 L19:   const [showInstructions, setShowInstructions] = useState(true);
 L20: 
 L21:   useEffect(() => {
-L22:     fetch('/api/datasets')
+L22:     fetch('/datasets')
 L23:       .then(res => res.json())
 L24:       .then(data => setDatasets(data.datasets))
 L25:       .catch(() => setDatasets([]));
@@ -154,22 +154,22 @@ L37:         <DialogContent className="sm:max-w-[425px]">
 L38:           <DialogHeader>
 L39:             <DialogTitle>Welcome to Image Comparison</DialogTitle>
 L40:             <DialogDescription className="space-y-4">
-L41:               <p>Before starting, please ensure you have:</p>
-L42:               <ol className="list-decimal ml-4 space-y-2">
-L43:                 <li>Created a folder with your dataset name in: <br/>
+L41:                 <div>Before starting, please ensure you have:</div>
+L42:                 <ol className="list-decimal ml-4 space-y-2">
+L43:                     <li>Created a folder with your dataset name in: <br/>
 L44:                     <code className="bg-muted p-1 rounded text-sm">
-L45:                       /public/comparison-images/your_dataset_name/
+L45:                         /public/comparison-images/your_dataset_name/
 L46:                     </code>
-L47:                 </li>
-L48:                 <li>Placed all your images (.png, .jpg, etc.) in this folder</li>
-L49:               </ol>
-L50:               <Button 
-L51:                 className="w-full mt-4" 
-L52:                 onClick={() => setShowInstructions(false)}
-L53:               >
-L54:                 I understand
-L55:               </Button>
-L56:             </DialogDescription>
+L47:                     </li>
+L48:                     <li>Placed all your images (.png, .jpg, etc.) in this folder</li>
+L49:                 </ol>
+L50:                 <Button 
+L51:                     className="w-full mt-4" 
+L52:                     onClick={() => setShowInstructions(false)}
+L53:                 >
+L54:                     I understand
+L55:                 </Button>
+L56:                 </DialogDescription>
 L57:           </DialogHeader>
 L58:         </DialogContent>
 L59:       </Dialog>
@@ -217,11 +217,55 @@ L100:   );
 L101: }
 </src/app/page.tsx>
 
+<src/components/collapsible-sidebar.tsx>
+L1: import React, { useState } from 'react';
+L2: import { Button } from "@/components/ui/button";
+L3: import { ScrollArea } from "@/components/ui/scroll-area";
+L4: import { ChevronLeft, ChevronRight } from "lucide-react";
+L5: import { motion } from "framer-motion";
+L6: 
+L7: interface RankingSidebarProps {
+L8:   children: React.ReactNode;
+L9: }
+L10: 
+L11: export const CollapsibleRankingSidebar: React.FC<RankingSidebarProps> = ({ children }) => {
+L12:   const [isOpen, setIsOpen] = useState(true);
+L13: 
+L14:   return (
+L15:     <div className="relative flex h-full">
+L16:       <Button
+L17:         variant="outline"
+L18:         size="icon"
+L19:         className="absolute -left-4 top-1/2 -translate-y-1/2 z-10"
+L20:         onClick={() => setIsOpen(!isOpen)}
+L21:       >
+L22:         {isOpen ? <ChevronRight /> : <ChevronLeft />}
+L23:       </Button>
+L24:       
+L25:       <motion.div
+L26:         initial={{ width: 256 }}
+L27:         animate={{ width: isOpen ? 256 : 0 }}
+L28:         transition={{ duration: 0.2 }}
+L29:         className="bg-muted border-l overflow-hidden"
+L30:       >
+L31:         <ScrollArea className="h-full">
+L32:           <div className="p-4 space-y-4">
+L33:             {children}
+L34:           </div>
+L35:         </ScrollArea>
+L36:       </motion.div>
+L37:     </div>
+L38:   );
+L39: };
+L40: 
+L41: export default CollapsibleRankingSidebar;
+</src/components/collapsible-sidebar.tsx>
+
 <src/components/comparison-layout.tsx>
 L1: import React from 'react';
 L2: 
 L3: interface ImageContainerProps {
-L4:   side: 'left' | 'right';
+L4:   side: 'top' | 'bottom';
 L5:   children: React.ReactNode;
 L6: }
 L7: 
@@ -254,20 +298,20 @@ L33:   </div>
 L34: );
 L35: 
 L36: export const ImageContainer: React.FC<ImageContainerProps> = ({ children, side }) => (
-L37:   <div
-L38:     className={`relative w-full h-[calc(50vh-60px)] bg-muted rounded-lg overflow-hidden grid place-items-center ${
-L39:       side === 'left' ? 'mr-2' : 'ml-2'
-L40:     }`}
-L41:   >
-L42:     {children}
-L43:   </div>
-L44: );
-L45: 
-L46: export const ImageWrapper: React.FC<ImageWrapperProps> = ({ children }) => (
-L47:   <div className="w-full h-full grid place-items-center">
-L48:     {children}
-L49:   </div>
-L50: );
+L37:     <div
+L38:       className={`relative w-full h-[calc(50vh-60px)] bg-muted rounded-lg overflow-hidden grid place-items-center ${
+L39:         side === 'top' ? 'mb-2' : 'mt-2'
+L40:       }`}
+L41:     >
+L42:       {children}
+L43:     </div>
+L44:   );
+L45:   
+L46:   export const ImageWrapper: React.FC<ImageWrapperProps> = ({ children }) => (
+L47:     <div className="w-full h-full flex items-center justify-center">
+L48:       {children}
+L49:     </div>
+L50:   );
 L51: 
 L52: export const RankingSidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 L53:   <div className="w-64 border-l bg-muted">
@@ -281,6 +325,16 @@ L60:     {children}
 L61:   </div>
 L62: );
 </src/components/comparison-layout.tsx>
+
+<src/lib/utils.ts>
+L1: import { clsx, type ClassValue } from "clsx"
+L2: import { twMerge } from "tailwind-merge"
+L3: 
+L4: export function cn(...inputs: ClassValue[]) {
+L5:   return twMerge(clsx(inputs))
+L6: }
+L7: 
+</src/lib/utils.ts>
 
 <src/scripts/image_match.ts>
 L1: import * as fs from "fs";
@@ -429,16 +483,6 @@ L143: matchImages(imageFolderPath, jsonFilePath, outputFilePath);
 L144: 
 </src/scripts/image_match.ts>
 
-<src/lib/utils.ts>
-L1: import { clsx, type ClassValue } from "clsx"
-L2: import { twMerge } from "tailwind-merge"
-L3: 
-L4: export function cn(...inputs: ClassValue[]) {
-L5:   return twMerge(clsx(inputs))
-L6: }
-L7: 
-</src/lib/utils.ts>
-
 <src/app/datasets/route.ts>
 L1: // src/app/api/datasets/route.ts
 L2: import { NextResponse } from 'next/server';
@@ -473,470 +517,6 @@ L30:     return NextResponse.json({ datasets: [] });
 L31:   }
 L32: }
 </src/app/datasets/route.ts>
-
-<src/app/rate/page.tsx>
-L1: "use client";
-L2: 
-L3: import { useState, useEffect, useRef, useCallback } from "react";
-L4: import { useRouter } from 'next/navigation';
-L5: import { motion, AnimatePresence } from "framer-motion";
-L6: import Zoom from "react-medium-image-zoom";
-L7: import "react-medium-image-zoom/dist/styles.css";
-L8: import { Progress } from "@/components/ui/progress";
-L9: import { Button } from "@/components/ui/button";
-L10: import { ScrollArea } from "@/components/ui/scroll-area";
-L11: import {
-L12:   Dialog,
-L13:   DialogContent,
-L14:   DialogHeader,
-L15:   DialogTitle,
-L16:   DialogDescription,
-L17: } from "@/components/ui/dialog";
-L18: import {
-L19:   Popover,
-L20:   PopoverContent,
-L21:   PopoverTrigger,
-L22: } from "@/components/ui/popover";
-L23: import { Slider } from "@/components/ui/slider";
-L24: import { Label } from "@/components/ui/label";
-L25: import { Ranker, RankableItem, ComparisonResult } from "eloranker";
-L26: import {
-L27:   ComparisonContainer,
-L28:   TopBar,
-L29:   MainContent,
-L30:   ComparisonArea,
-L31:   ImageContainer,
-L32:   ImageWrapper,
-L33:   RankingSidebar,
-L34:   TieButtonContainer,
-L35: } from "@/components/comparison-layout";
-L36: 
-L37: interface ImageMapping {
-L38:   newFilename: string;
-L39: }
-L40: 
-L41: type ProgressParamsState = {
-L42:   ratingChangeThreshold: number;
-L43:   stableComparisonsThreshold: number;
-L44: }
-L45: 
-L46: let ranker: Ranker | null = null;
-L47: 
-L48: export default function PairwiseComparison() {
-L49:   const router = useRouter();
-L50:   const [datasetLabel, setDatasetLabel] = useState<string | null>(null);
-L51:   const [currentPair, setCurrentPair] = useState<[string, string] | null>(null);
-L52:   const initializing = useRef(false);
-L53:   const [progress, setProgress] = useState(0);
-L54:   const [comparisons, setComparisons] = useState(0);
-L55:   const [totalItems, setTotalItems] = useState(0);
-L56:   const [showInstructions, setShowInstructions] = useState(true);
-L57:   const [progressParams, setProgressParams] = useState<ProgressParamsState>({
-L58:     ratingChangeThreshold: 50,
-L59:     stableComparisonsThreshold: 3,
-L60:   });
-L61: 
-L62:   const updateProgress = useCallback(() => {
-L63:     if (ranker) {
-L64:       if (comparisons < totalItems) {
-L65:         const nLogN = totalItems * Math.log2(totalItems);
-L66:         const earlyProgress = (comparisons / nLogN) * 100;
-L67:         setProgress(Math.min(earlyProgress, 100));
-L68:       } else {
-L69:         const currentProgress = ranker.getProgress(progressParams);
-L70:         setProgress(currentProgress * 100);
-L71:       }
-L72:     }
-L73:   }, [comparisons, totalItems, progressParams]);
-L74: 
-L75:   const setNextComparison = useCallback(() => {
-L76:     if (ranker) {
-L77:       const nextPair = ranker.getNextComparison();
-L78:       setCurrentPair(nextPair);
-L79:     }
-L80:   }, []);
-L81: 
-L82:   const initializeRanker = useCallback(async () => {
-L83:     if (!datasetLabel) return;
-L84:     
-L85:     console.log("Loading dataset ", datasetLabel);
-L86: 
-L87:     try {
-L88:       const storedComparisons = localStorage.getItem(
-L89:         `comparisons_${datasetLabel}`
-L90:       );
-L91:       const storedItems = localStorage.getItem(`ranker_${datasetLabel}`);
-L92: 
-L93:       if (storedItems && storedComparisons) {
-L94:         console.log("Loading data from localStorage");
-L95:         const parsedItems = JSON.parse(storedItems);
-L96:         console.log("Stored items:", parsedItems);
-L97:         console.log("Stored comparisons:", JSON.parse(storedComparisons));
-L98: 
-L99:         ranker = new Ranker(parsedItems, { kFactor: 32 });
-L100:         JSON.parse(storedComparisons).forEach((comparison: ComparisonResult) => {
-L101:           ranker?.addComparisonResult(comparison);
-L102:         });
-L103:         setComparisons(JSON.parse(storedComparisons).length);
-L104:         setTotalItems(parsedItems.length);
-L105:       } else {
-L106:         console.log("No stored data found, initializing new ranker");
-L107:         const imageMappings: ImageMapping[] = await fetch(
-L108:           `/comparison-images/${datasetLabel}/image-mappings.json`
-L109:         ).then((res) => res.json());
-L110: 
-L111:         const initialItems: RankableItem[] = imageMappings.map((mapping) => ({
-L112:           id: mapping.newFilename,
-L113:           initialRating: 1500,
-L114:           currentRating: 1500,
-L115:           wins: 0,
-L116:           losses: 0,
-L117:           ties: 0,
-L118:           comparisons: 0,
-L119:           lastComparisonTime: null,
-L120:           ratingHistory: [],
-L121:         }));
-L122: 
-L123:         console.log(
-L124:           "Loaded ",
-L125:           initialItems.length,
-L126:           " items for dataset ",
-L127:           datasetLabel
-L128:         );
-L129: 
-L130:         ranker = new Ranker(initialItems, { kFactor: 32 });
-L131:         setTotalItems(initialItems.length);
-L132:       }
-L133: 
-L134:       updateProgress();
-L135:       setNextComparison();
-L136:     } catch (error) {
-L137:       console.error("Error initializing ranker:", error);
-L138:       alert("Error loading dataset. Please check if the dataset exists and is properly formatted.");
-L139:       router.push('/');
-L140:       return;
-L141:     }
-L142:   }, [datasetLabel, router, updateProgress, setNextComparison]);
-L143: 
-L144:   const handleComparison = useCallback((result: "win" | "loss" | "tie") => {
-L145:     if (!ranker || !currentPair || !datasetLabel) return;
-L146: 
-L147:     const comparisonResult: ComparisonResult = {
-L148:       itemId1: currentPair[0],
-L149:       itemId2: currentPair[1],
-L150:       result: result,
-L151:       timestamp: Date.now(),
-L152:     };
-L153: 
-L154:     const ratingDelta = ranker.addComparisonResult(comparisonResult);
-L155:     console.log("Rating delta:", ratingDelta);
-L156:     updateProgress();
-L157:     setNextComparison();
-L158:     setComparisons((prev) => prev + 1);
-L159: 
-L160:     // Persist data to localStorage
-L161:     const updatedItems = ranker.getAllItems();
-L162:     localStorage.setItem(
-L163:       `ranker_${datasetLabel}`,
-L164:       JSON.stringify(updatedItems)
-L165:     );
-L166: 
-L167:     // Save comparison to localStorage
-L168:     const storedComparisons = localStorage.getItem(
-L169:       `comparisons_${datasetLabel}`
-L170:     );
-L171:     const comparisons = storedComparisons ? JSON.parse(storedComparisons) : [];
-L172:     comparisons.push(comparisonResult);
-L173:     localStorage.setItem(
-L174:       `comparisons_${datasetLabel}`,
-L175:       JSON.stringify(comparisons)
-L176:     );
-L177:   }, [currentPair, datasetLabel, setNextComparison, updateProgress]);
-L178: 
-L179:   const handleImageError = useCallback(() => {
-L180:     alert("Error loading images. Please check if the dataset exists and contains valid images.");
-L181:     router.push('/');
-L182:   }, [router]);
-L183: 
-L184:   const downloadRankings = useCallback(() => {
-L185:     if (!ranker || !datasetLabel) return;
-L186: 
-L187:     const rankings = ranker.getRankings().map((item, index) => ({
-L188:       rank: index + 1,
-L189:       id: item.id,
-L190:       rating: item.currentRating,
-L191:     }));
-L192: 
-L193:     const jsonContent = JSON.stringify(rankings, null, 2);
-L194:     const blob = new Blob([jsonContent], { type: "application/json" });
-L195:     const url = URL.createObjectURL(blob);
-L196: 
-L197:     const link = document.createElement("a");
-L198:     link.href = url;
-L199:     link.download = `rankings_${datasetLabel}.json`;
-L200:     document.body.appendChild(link);
-L201:     link.click();
-L202:     document.body.removeChild(link);
-L203:     URL.revokeObjectURL(url);
-L204:   }, [datasetLabel]);
-L205: 
-L206:   const downloadWinLoss = useCallback(() => {
-L207:     if (!datasetLabel) return;
-L208:     
-L209:     const storedComparisons = localStorage.getItem(
-L210:       `comparisons_${datasetLabel}`
-L211:     );
-L212:     if (!storedComparisons) return;
-L213: 
-L214:     const comparisons = JSON.parse(storedComparisons);
-L215:     const jsonContent = JSON.stringify(comparisons, null, 2);
-L216:     const blob = new Blob([jsonContent], { type: "application/json" });
-L217:     const url = URL.createObjectURL(blob);
-L218: 
-L219:     const link = document.createElement("a");
-L220:     link.href = url;
-L221:     link.download = `win_loss_${datasetLabel}.json`;
-L222:     document.body.appendChild(link);
-L223:     link.click();
-L224:     document.body.removeChild(link);
-L225:     URL.revokeObjectURL(url);
-L226:   }, [datasetLabel]);
-L227: 
-L228:   // Dataset selection effect
-L229:   useEffect(() => {
-L230:     const selectedDataset = localStorage.getItem('selected_dataset');
-L231:     if (!selectedDataset) {
-L232:       router.push('/');
-L233:       return;
-L234:     }
-L235:     setDatasetLabel(selectedDataset);
-L236:   }, [router]);
-L237: 
-L238:   // Initialize ranker effect
-L239:   useEffect(() => {
-L240:     if (!initializing.current && datasetLabel) {
-L241:       initializing.current = true;
-L242:       initializeRanker();
-L243:     }
-L244:   }, [datasetLabel, initializeRanker]);
-L245: 
-L246:   // Keyboard controls effect
-L247:   useEffect(() => {
-L248:     const handleKeyPress = (e: KeyboardEvent) => {
-L249:       if (!currentPair) return;
-L250:       
-L251:       switch(e.key) {
-L252:         case 'ArrowLeft':
-L253:           handleComparison('win');
-L254:           break;
-L255:         case 'ArrowRight':
-L256:           handleComparison('loss');
-L257:           break;
-L258:         case 'ArrowDown':
-L259:           handleComparison('tie');
-L260:           break;
-L261:       }
-L262:     };
-L263: 
-L264:     window.addEventListener('keydown', handleKeyPress);
-L265:     return () => window.removeEventListener('keydown', handleKeyPress);
-L266:   }, [currentPair, handleComparison]);
-L267: 
-L268:   if (!datasetLabel) {
-L269:     return <div className="flex items-center justify-center h-screen">Loading dataset...</div>;
-L270:   }
-L271: 
-L272:   if (!ranker || !currentPair) {
-L273:     return <div className="flex items-center justify-center h-screen">Initializing comparison...</div>;
-L274:   }
-L275: 
-L276:   const leftImageUrl = `/comparison-images/${datasetLabel}/${currentPair[0]}`;
-L277:   const rightImageUrl = `/comparison-images/${datasetLabel}/${currentPair[1]}`;
-L278: 
-L279:   return (
-L280:     <ComparisonContainer>
-L281:       <Dialog open={showInstructions} onOpenChange={setShowInstructions}>
-L282:         <DialogContent className="sm:max-w-[425px]">
-L283:           <DialogHeader>
-L284:             <DialogTitle>How to Compare Images</DialogTitle>
-L285:             <DialogDescription className="space-y-4">
-L286:               <p>Choose the better image between each pair:</p>
-L287:               <ul className="list-disc ml-4 space-y-2">
-L288:                 <li>Press <kbd className="px-2 py-1 bg-muted rounded">←</kbd> or click &ldquo;Win&rdquo; under left image</li>
-L289:                 <li>Press <kbd className="px-2 py-1 bg-muted rounded">→</kbd> or click &ldquo;Win&rdquo; under right image</li>
-L290:                 <li>Press <kbd className="px-2 py-1 bg-muted rounded">↓</kbd> or click &ldquo;Tie&rdquo; for equal quality</li>
-L291:               </ul>
-L292:               <Button 
-L293:                 className="w-full mt-4" 
-L294:                 onClick={() => setShowInstructions(false)}
-L295:               >
-L296:                 Start Comparing
-L297:               </Button>
-L298:             </DialogDescription>
-L299:           </DialogHeader>
-L300:         </DialogContent>
-L301:       </Dialog>
-L302: 
-L303:       <TopBar>
-L304:         <div className="text-sm font-medium">Comparisons: {comparisons}</div>
-L305:         <Popover>
-L306:           <PopoverTrigger asChild>
-L307:             <div className="flex-1 cursor-pointer">
-L308:               <Progress value={progress} className="w-full" />
-L309:             </div>
-L310:           </PopoverTrigger>
-L311:           <PopoverContent className="w-80">
-L312:             <div className="grid gap-4">
-L313:               <div className="space-y-2">
-L314:                 <h4 className="font-medium leading-none">
-L315:                   Adjust Progress Parameters
-L316:                 </h4>
-L317:                 <p className="text-sm text-muted-foreground">
-L318:                   These parameters affect how progress is calculated.
-L319:                 </p>
-L320:               </div>
-L321:               <div className="grid gap-2">
-L322:                 <div className="grid grid-cols-3 items-center gap-4">
-L323:                   <Label htmlFor="ratingChangeThreshold">Rating Change</Label>
-L324:                   <Slider
-L325:                     id="ratingChangeThreshold"
-L326:                     min={10}
-L327:                     max={500}
-L328:                     step={1}
-L329:                     value={[progressParams.ratingChangeThreshold]}
-L330:                     onValueChange={([value]) =>
-L331:                       setProgressParams((prev) => ({
-L332:                         ...prev,
-L333:                         ratingChangeThreshold: value,
-L334:                       }))
-L335:                     }
-L336:                     className="col-span-2"
-L337:                   />
-L338:                 </div>
-L339:                 <div className="grid grid-cols-3 items-center gap-4">
-L340:                   <Label htmlFor="stableComparisonsThreshold">Stable Comparisons</Label>
-L341:                   <Slider
-L342:                     id="stableComparisonsThreshold"
-L343:                     min={1}
-L344:                     max={12}
-L345:                     step={1}
-L346:                     value={[progressParams.stableComparisonsThreshold]}
-L347:                     onValueChange={([value]) =>
-L348:                       setProgressParams((prev) => ({
-L349:                         ...prev,
-L350:                         stableComparisonsThreshold: value,
-L351:                       }))
-L352:                     }
-L353:                     className="col-span-2"
-L354:                   />
-L355:                 </div>
-L356:               </div>
-L357:             </div>
-L358:           </PopoverContent>
-L359:         </Popover>
-L360:         <Button onClick={downloadRankings}>Download Rankings</Button>
-L361:         <Button onClick={downloadWinLoss}>Download Win/Loss</Button>
-L362:       </TopBar>
-L363: 
-L364:       <MainContent>
-L365:         <ComparisonArea>
-L366:           <AnimatePresence mode="wait">
-L367:             <motion.div
-L368:               key={`left-${currentPair[0]}`}
-L369:               initial={{ opacity: 0, x: -50 }}
-L370:               animate={{ opacity: 1, x: 0 }}
-L371:               exit={{ opacity: 0, x: 50 }}
-L372:               transition={{ duration: 0.3 }}
-L373:             >
-L374:               <ImageContainer side="left">
-L375:                 <Zoom>
-L376:                   <ImageWrapper>
-L377:                     <img
-L378:                       src={leftImageUrl}
-L379:                       alt="Left comparison image"
-L380:                       className="max-w-full max-h-full w-auto h-auto object-contain cursor-zoom-in"
-L381:                       onError={handleImageError}
-L382:                     />
-L383:                   </ImageWrapper>
-L384:                 </Zoom>
-L385:                 <Button
-L386:                   className="absolute bottom-2 right-2 z-10"
-L387:                   onClick={() => handleComparison("win")}
-L388:                 >
-L389:                   Win
-L390:                 </Button>
-L391:               </ImageContainer>
-L392:             </motion.div>
-L393:           </AnimatePresence>
-L394: 
-L395:           <TieButtonContainer>
-L396:             <Button variant="outline" onClick={() => handleComparison("tie")}>
-L397:               Tie
-L398:             </Button>
-L399:           </TieButtonContainer>
-L400: 
-L401:           <AnimatePresence mode="wait">
-L402:             <motion.div
-L403:               key={`right-${currentPair[1]}`}
-L404:               initial={{ opacity: 0, x: 50 }}
-L405:               animate={{ opacity: 1, x: 0 }}
-L406:               exit={{ opacity: 0, x: -50 }}
-L407:               transition={{ duration: 0.3 }}
-L408:             >
-L409:               <ImageContainer side="right">
-L410:                 <Zoom>
-L411:                   <ImageWrapper>
-L412:                     <img
-L413:                       src={rightImageUrl}
-L414:                       alt="Right comparison image"
-L415:                       className="max-w-full max-h-full w-auto h-auto object-contain cursor-zoom-in"
-L416:                       onError={handleImageError}
-L417:                     />
-L418:                   </ImageWrapper>
-L419:                 </Zoom>
-L420:                 <Button
-L421:                   className="absolute bottom-2 right-2 z-10"
-L422:                   onClick={() => handleComparison("loss")}
-L423:                 >
-L424:                   Win
-L425:                 </Button>
-L426:               </ImageContainer>
-L427:             </motion.div>
-L428:           </AnimatePresence>
-L429:         </ComparisonArea>
-L430: 
-L431:         <RankingSidebar>
-L432:           <ScrollArea className="h-full">
-L433:             <div className="p-4 space-y-4">
-L434:               <h2 className="font-semibold text-lg mb-2">Rankings</h2>
-L435:               {ranker.getRankings().map((item, index) => (
-L436:                 <div key={item.id} className="flex items-center space-x-2">
-L437:                   <div className="w-16 h-12 bg-background rounded overflow-hidden">
-L438:                     <img
-L439:                       src={`/comparison-images/${datasetLabel}/${item.id}`}
-L440:                       alt={`Ranked image ${index + 1}`}
-L441:                       className="w-full h-full object-cover"
-L442:                       onError={handleImageError}
-L443:                     />
-L444:                   </div>
-L445:                   <div>
-L446:                     <div className="text-sm font-medium">
-L447:                       Rank {index + 1}
-L448:                     </div>
-L449:                     <div className="text-xs text-muted-foreground">
-L450:                       Rating: {Math.round(item.currentRating)}
-L451:                     </div>
-L452:                   </div>
-L453:                 </div>
-L454:               ))}
-L455:             </div>
-L456:           </ScrollArea>
-L457:         </RankingSidebar>
-L458:       </MainContent>
-L459:     </ComparisonContainer>
-L460:   );
-L461: }
-</src/app/rate/page.tsx>
 
 <src/components/ui/button.tsx>
 L1: import * as React from "react"
@@ -1336,4 +916,464 @@ L27:
 L28: export { Slider }
 L29: 
 </src/components/ui/slider.tsx>
+
+<src/app/rate/page.tsx>
+L1: "use client";
+L2: 
+L3: import { useState, useEffect, useRef, useCallback } from "react";
+L4: import { useRouter } from 'next/navigation';
+L5: import { motion, AnimatePresence } from "framer-motion";
+L6: import Zoom from "react-medium-image-zoom";
+L7: import "react-medium-image-zoom/dist/styles.css";
+L8: import { Progress } from "@/components/ui/progress";
+L9: import { Button } from "@/components/ui/button";
+L10: import { ScrollArea } from "@/components/ui/scroll-area";
+L11: import {
+L12:   Dialog,
+L13:   DialogContent,
+L14:   DialogHeader,
+L15:   DialogTitle,
+L16:   DialogDescription,
+L17: } from "@/components/ui/dialog";
+L18: import {
+L19:   Popover,
+L20:   PopoverContent,
+L21:   PopoverTrigger,
+L22: } from "@/components/ui/popover";
+L23: import { Slider } from "@/components/ui/slider";
+L24: import { Label } from "@/components/ui/label";
+L25: import { Ranker, RankableItem, ComparisonResult } from "eloranker";
+L26: import {
+L27:   ComparisonContainer,
+L28:   TopBar,
+L29:   MainContent,
+L30:   ComparisonArea,
+L31:   ImageContainer,
+L32:   ImageWrapper,
+L33:   RankingSidebar,
+L34:   TieButtonContainer,
+L35: } from "@/components/comparison-layout";
+L36: import { CollapsibleRankingSidebar } from "@/components/collapsible-sidebar";
+L37: 
+L38: interface ImageMapping {
+L39:   newFilename: string;
+L40: }
+L41: 
+L42: type ProgressParamsState = {
+L43:   ratingChangeThreshold: number;
+L44:   stableComparisonsThreshold: number;
+L45: }
+L46: 
+L47: let ranker: Ranker | null = null;
+L48: 
+L49: export default function PairwiseComparison() {
+L50:   const router = useRouter();
+L51:   const [datasetLabel, setDatasetLabel] = useState<string | null>(null);
+L52:   const [currentPair, setCurrentPair] = useState<[string, string] | null>(null);
+L53:   const initializing = useRef(false);
+L54:   const [progress, setProgress] = useState(0);
+L55:   const [comparisons, setComparisons] = useState(0);
+L56:   const [totalItems, setTotalItems] = useState(0);
+L57:   const [showInstructions, setShowInstructions] = useState(true);
+L58:   const [progressParams, setProgressParams] = useState<ProgressParamsState>({
+L59:     ratingChangeThreshold: 50,
+L60:     stableComparisonsThreshold: 3,
+L61:   });
+L62: 
+L63:   const updateProgress = useCallback(() => {
+L64:     if (ranker) {
+L65:       if (comparisons < totalItems) {
+L66:         const nLogN = totalItems * Math.log2(totalItems);
+L67:         const earlyProgress = (comparisons / nLogN) * 100;
+L68:         setProgress(Math.min(earlyProgress, 100));
+L69:       } else {
+L70:         const currentProgress = ranker.getProgress(progressParams);
+L71:         setProgress(currentProgress * 100);
+L72:       }
+L73:     }
+L74:   }, [comparisons, totalItems, progressParams]);
+L75: 
+L76:   const setNextComparison = useCallback(() => {
+L77:     if (ranker) {
+L78:       const nextPair = ranker.getNextComparison();
+L79:       setCurrentPair(nextPair);
+L80:     }
+L81:   }, []);
+L82: 
+L83:   const initializeRanker = useCallback(async () => {
+L84:     if (!datasetLabel) return;
+L85:     
+L86:     console.log("Loading dataset ", datasetLabel);
+L87: 
+L88:     try {
+L89:       const storedComparisons = localStorage.getItem(
+L90:         `comparisons_${datasetLabel}`
+L91:       );
+L92:       const storedItems = localStorage.getItem(`ranker_${datasetLabel}`);
+L93: 
+L94:       if (storedItems && storedComparisons) {
+L95:         console.log("Loading data from localStorage");
+L96:         const parsedItems = JSON.parse(storedItems);
+L97:         console.log("Stored items:", parsedItems);
+L98:         console.log("Stored comparisons:", JSON.parse(storedComparisons));
+L99: 
+L100:         ranker = new Ranker(parsedItems, { kFactor: 32 });
+L101:         JSON.parse(storedComparisons).forEach((comparison: ComparisonResult) => {
+L102:           ranker?.addComparisonResult(comparison);
+L103:         });
+L104:         setComparisons(JSON.parse(storedComparisons).length);
+L105:         setTotalItems(parsedItems.length);
+L106:       } else {
+L107:         console.log("No stored data found, initializing new ranker");
+L108:         const imageMappings: ImageMapping[] = await fetch(
+L109:           `/comparison-images/${datasetLabel}/image-mappings.json`
+L110:         ).then((res) => res.json());
+L111: 
+L112:         const initialItems: RankableItem[] = imageMappings.map((mapping) => ({
+L113:           id: mapping.newFilename,
+L114:           initialRating: 1500,
+L115:           currentRating: 1500,
+L116:           wins: 0,
+L117:           losses: 0,
+L118:           ties: 0,
+L119:           comparisons: 0,
+L120:           lastComparisonTime: null,
+L121:           ratingHistory: [],
+L122:         }));
+L123: 
+L124:         console.log(
+L125:           "Loaded ",
+L126:           initialItems.length,
+L127:           " items for dataset ",
+L128:           datasetLabel
+L129:         );
+L130: 
+L131:         ranker = new Ranker(initialItems, { kFactor: 32 });
+L132:         setTotalItems(initialItems.length);
+L133:       }
+L134: 
+L135:       updateProgress();
+L136:       setNextComparison();
+L137:     } catch (error) {
+L138:       console.error("Error initializing ranker:", error);
+L139:       alert("Error loading dataset. Please check if the dataset exists and is properly formatted.");
+L140:       router.push('/');
+L141:       return;
+L142:     }
+L143:   }, [datasetLabel, router, updateProgress, setNextComparison]);
+L144: 
+L145:   const handleComparison = useCallback((result: "win" | "loss" | "tie") => {
+L146:     if (!ranker || !currentPair || !datasetLabel) return;
+L147: 
+L148:     const comparisonResult: ComparisonResult = {
+L149:       itemId1: currentPair[0],
+L150:       itemId2: currentPair[1],
+L151:       result: result,
+L152:       timestamp: Date.now(),
+L153:     };
+L154: 
+L155:     const ratingDelta = ranker.addComparisonResult(comparisonResult);
+L156:     console.log("Rating delta:", ratingDelta);
+L157:     updateProgress();
+L158:     setNextComparison();
+L159:     setComparisons((prev) => prev + 1);
+L160: 
+L161:     // Persist data to localStorage
+L162:     const updatedItems = ranker.getAllItems();
+L163:     localStorage.setItem(
+L164:       `ranker_${datasetLabel}`,
+L165:       JSON.stringify(updatedItems)
+L166:     );
+L167: 
+L168:     // Save comparison to localStorage
+L169:     const storedComparisons = localStorage.getItem(
+L170:       `comparisons_${datasetLabel}`
+L171:     );
+L172:     const comparisons = storedComparisons ? JSON.parse(storedComparisons) : [];
+L173:     comparisons.push(comparisonResult);
+L174:     localStorage.setItem(
+L175:       `comparisons_${datasetLabel}`,
+L176:       JSON.stringify(comparisons)
+L177:     );
+L178:   }, [currentPair, datasetLabel, setNextComparison, updateProgress]);
+L179: 
+L180:   const handleImageError = useCallback(() => {
+L181:     alert("Error loading images. Please check if the dataset exists and contains valid images.");
+L182:     router.push('/');
+L183:   }, [router]);
+L184: 
+L185:   const downloadRankings = useCallback(() => {
+L186:     if (!ranker || !datasetLabel) return;
+L187: 
+L188:     const rankings = ranker.getRankings().map((item, index) => ({
+L189:       rank: index + 1,
+L190:       id: item.id,
+L191:       rating: item.currentRating,
+L192:     }));
+L193: 
+L194:     const jsonContent = JSON.stringify(rankings, null, 2);
+L195:     const blob = new Blob([jsonContent], { type: "application/json" });
+L196:     const url = URL.createObjectURL(blob);
+L197: 
+L198:     const link = document.createElement("a");
+L199:     link.href = url;
+L200:     link.download = `rankings_${datasetLabel}.json`;
+L201:     document.body.appendChild(link);
+L202:     link.click();
+L203:     document.body.removeChild(link);
+L204:     URL.revokeObjectURL(url);
+L205:   }, [datasetLabel]);
+L206: 
+L207:   const downloadWinLoss = useCallback(() => {
+L208:     if (!datasetLabel) return;
+L209:     
+L210:     const storedComparisons = localStorage.getItem(
+L211:       `comparisons_${datasetLabel}`
+L212:     );
+L213:     if (!storedComparisons) return;
+L214: 
+L215:     const comparisons = JSON.parse(storedComparisons);
+L216:     const jsonContent = JSON.stringify(comparisons, null, 2);
+L217:     const blob = new Blob([jsonContent], { type: "application/json" });
+L218:     const url = URL.createObjectURL(blob);
+L219: 
+L220:     const link = document.createElement("a");
+L221:     link.href = url;
+L222:     link.download = `win_loss_${datasetLabel}.json`;
+L223:     document.body.appendChild(link);
+L224:     link.click();
+L225:     document.body.removeChild(link);
+L226:     URL.revokeObjectURL(url);
+L227:   }, [datasetLabel]);
+L228: 
+L229:   // Dataset selection effect
+L230:   useEffect(() => {
+L231:     const selectedDataset = localStorage.getItem('selected_dataset');
+L232:     if (!selectedDataset) {
+L233:       router.push('/');
+L234:       return;
+L235:     }
+L236:     setDatasetLabel(selectedDataset);
+L237:   }, [router]);
+L238: 
+L239:   // Initialize ranker effect
+L240:   useEffect(() => {
+L241:     if (!initializing.current && datasetLabel) {
+L242:       initializing.current = true;
+L243:       initializeRanker();
+L244:     }
+L245:   }, [datasetLabel, initializeRanker]);
+L246: 
+L247:   // Keyboard controls effect
+L248:   useEffect(() => {
+L249:     const handleKeyPress = (e: KeyboardEvent) => {
+L250:       if (!currentPair) return;
+L251:       
+L252:       switch(e.key) {
+L253:         case 'ArrowUp':
+L254:           handleComparison('win');
+L255:           break;
+L256:         case 'ArrowDown':
+L257:           handleComparison('loss');
+L258:           break;
+L259:         case 'ArrowLeft':
+L260:           handleComparison('tie');
+L261:           break;
+L262:       }
+L263:     };
+L264: 
+L265:     window.addEventListener('keydown', handleKeyPress);
+L266:     return () => window.removeEventListener('keydown', handleKeyPress);
+L267:   }, [currentPair, handleComparison]);
+L268: 
+L269:   if (!datasetLabel) {
+L270:     return <div className="flex items-center justify-center h-screen">Loading dataset...</div>;
+L271:   }
+L272: 
+L273:   if (!ranker || !currentPair) {
+L274:     return <div className="flex items-center justify-center h-screen">Initializing comparison...</div>;
+L275:   }
+L276: 
+L277:   const topImageUrl = `/comparison-images/${datasetLabel}/${currentPair[0]}`;
+L278:   const bottomImageUrl = `/comparison-images/${datasetLabel}/${currentPair[1]}`;
+L279: 
+L280:   return (
+L281:     <ComparisonContainer>
+L282:       <Dialog open={showInstructions} onOpenChange={setShowInstructions}>
+L283:         <DialogContent className="sm:max-w-[425px]">
+L284:           <DialogHeader>
+L285:             <DialogTitle>How to Compare Images</DialogTitle>
+L286:             <DialogDescription className="space-y-4">
+L287:               <p>Choose the better image between each pair:</p>
+L288:               <ul className="list-disc ml-4 space-y-2">
+L289:                 <li>Press <kbd className="px-2 py-1 bg-muted rounded">↑</kbd> or click &ldquo;Win&rdquo; under top image</li>
+L290:                 <li>Press <kbd className="px-2 py-1 bg-muted rounded">↓</kbd> or click &ldquo;Win&rdquo; under bottom image</li>
+L291:                 <li>Press <kbd className="px-2 py-1 bg-muted rounded">←</kbd> or click &ldquo;Tie&rdquo; for equal quality</li>
+L292:               </ul>
+L293:               <Button 
+L294:                 className="w-full mt-4" 
+L295:                 onClick={() => setShowInstructions(false)}
+L296:               >
+L297:                 Start Comparing
+L298:               </Button>
+L299:             </DialogDescription>
+L300:           </DialogHeader>
+L301:         </DialogContent>
+L302:       </Dialog>
+L303: 
+L304:       <TopBar>
+L305:         <div className="text-sm font-medium">Comparisons: {comparisons}</div>
+L306:         <Popover>
+L307:           <PopoverTrigger asChild>
+L308:             <div className="flex-1 cursor-pointer">
+L309:               <Progress value={progress} className="w-full" />
+L310:             </div>
+L311:           </PopoverTrigger>
+L312:           <PopoverContent className="w-80">
+L313:             <div className="grid gap-4">
+L314:               <div className="space-y-2">
+L315:                 <h4 className="font-medium leading-none">
+L316:                   Adjust Progress Parameters
+L317:                 </h4>
+L318:                 <p className="text-sm text-muted-foreground">
+L319:                   These parameters affect how progress is calculated.
+L320:                 </p>
+L321:               </div>
+L322:               <div className="grid gap-2">
+L323:                 <div className="grid grid-cols-3 items-center gap-4">
+L324:                   <Label htmlFor="ratingChangeThreshold">Rating Change</Label>
+L325:                   <Slider
+L326:                     id="ratingChangeThreshold"
+L327:                     min={10}
+L328:                     max={500}
+L329:                     step={1}
+L330:                     value={[progressParams.ratingChangeThreshold]}
+L331:                     onValueChange={([value]) =>
+L332:                       setProgressParams((prev) => ({
+L333:                         ...prev,
+L334:                         ratingChangeThreshold: value,
+L335:                       }))
+L336:                     }
+L337:                     className="col-span-2"
+L338:                   />
+L339:                 </div>
+L340:                 <div className="grid grid-cols-3 items-center gap-4">
+L341:                   <Label htmlFor="stableComparisonsThreshold">Stable Comparisons</Label>
+L342:                   <Slider
+L343:                     id="stableComparisonsThreshold"
+L344:                     min={1}
+L345:                     max={12}
+L346:                     step={1}
+L347:                     value={[progressParams.stableComparisonsThreshold]}
+L348:                     onValueChange={([value]) =>
+L349:                       setProgressParams((prev) => ({
+L350:                         ...prev,
+L351:                         stableComparisonsThreshold: value,
+L352:                       }))
+L353:                     }
+L354:                     className="col-span-2"
+L355:                   />
+L356:                 </div>
+L357:               </div>
+L358:             </div>
+L359:           </PopoverContent>
+L360:         </Popover>
+L361:         <Button onClick={downloadRankings}>Download Rankings</Button>
+L362:         <Button onClick={downloadWinLoss}>Download Win/Loss</Button>
+L363:       </TopBar>
+L364: 
+L365:       <MainContent>
+L366:         <ComparisonArea>
+L367:           <AnimatePresence mode="wait">
+L368:             <motion.div
+L369:               key={`top-${currentPair[0]}`}
+L370:               initial={{ opacity: 0, y: -50 }}
+L371:               animate={{ opacity: 1, y: 0 }}
+L372:               exit={{ opacity: 0, y: 50 }}
+L373:               transition={{ duration: 0.3 }}
+L374:             >
+L375:               <ImageContainer side="top">
+L376:                 <Zoom>
+L377:                   <ImageWrapper>
+L378:                     <img
+L379:                       src={topImageUrl}
+L380:                       alt="Top comparison image"
+L381:                         className="max-h-[calc(50vh-60px)] w-auto object-scale-down cursor-zoom-in"
+L382:                       onError={handleImageError}
+L383:                     />
+L384:                   </ImageWrapper>
+L385:                 </Zoom>
+L386:               </ImageContainer>
+L387:             </motion.div>
+L388:           </AnimatePresence>
+L389: 
+L390:           <TieButtonContainer>
+L391:             <div className="flex space-x-2">
+L392:               <Button onClick={() => handleComparison("win")}>
+L393:                 Top Wins
+L394:               </Button>
+L395:               <Button variant="outline" onClick={() => handleComparison("tie")}>
+L396:                 Tie
+L397:               </Button>
+L398:               <Button onClick={() => handleComparison("loss")}>
+L399:                 Bottom Wins
+L400:               </Button>
+L401:             </div>
+L402:           </TieButtonContainer>
+L403:           <AnimatePresence mode="wait">
+L404:             <motion.div
+L405:               key={`down-${currentPair[1]}`}
+L406:               initial={{ opacity: 0, y: 50 }}
+L407:               animate={{ opacity: 1, y: 0 }}
+L408:               exit={{ opacity: 0, y: -50 }}
+L409:               transition={{ duration: 0.3 }}
+L410:             >
+L411:               <ImageContainer side="bottom">
+L412:                 <Zoom>
+L413:                   <ImageWrapper>
+L414:                     <img
+L415:                       src={bottomImageUrl}
+L416:                       alt="Bottom comparison image"
+L417:                         className="max-h-[calc(50vh-60px)] w-auto object-scale-down cursor-zoom-in"
+L418:                       onError={handleImageError}
+L419:                     />
+L420:                   </ImageWrapper>
+L421:                 </Zoom>
+L422:               </ImageContainer>
+L423:             </motion.div>
+L424:           </AnimatePresence>
+L425:         </ComparisonArea>
+L426: 
+L427:         <CollapsibleRankingSidebar>
+L428:           <ScrollArea className="h-full">
+L429:             <div className="p-4 space-y-4">
+L430:               <h2 className="font-semibold text-lg mb-2">Rankings</h2>
+L431:               {ranker.getRankings().map((item, index) => (
+L432:                 <div key={item.id} className="flex items-center space-x-2">
+L433:                   <div className="w-16 h-12 bg-background rounded overflow-hidden">
+L434:                     <img
+L435:                       src={`/comparison-images/${datasetLabel}/${item.id}`}
+L436:                       alt={`Ranked image ${index + 1}`}
+L437:                       className="w-full h-full object-cover"
+L438:                       onError={handleImageError}
+L439:                     />
+L440:                   </div>
+L441:                   <div>
+L442:                     <div className="text-sm font-medium">
+L443:                       Rank {index + 1}
+L444:                     </div>
+L445:                     <div className="text-xs text-muted-foreground">
+L446:                       Rating: {Math.round(item.currentRating)}
+L447:                     </div>
+L448:                   </div>
+L449:                 </div>
+L450:               ))}
+L451:             </div>
+L452:           </ScrollArea>
+L453: </CollapsibleRankingSidebar>
+L454:       </MainContent>
+L455:     </ComparisonContainer>
+L456:   );
+L457: }
+</src/app/rate/page.tsx>
 

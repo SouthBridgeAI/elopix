@@ -60,7 +60,7 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="w-full max-w-md space-y-4">
-        <h1 className="text-2xl font-bold text-center mb-8">Select Dataset</h1>
+        <h1 className="text-2xl font-bold text-center mb-8">Pick a Dataset!</h1>
         
         {datasets.length === 0 ? (
           <div className="text-center space-y-4">

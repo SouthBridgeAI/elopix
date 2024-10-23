@@ -30,7 +30,6 @@ import {
   ComparisonArea,
   ImageContainer,
   ImageWrapper,
-  RankingSidebar,
   TieButtonContainer,
 } from "@/components/comparison-layout";
 import { CollapsibleRankingSidebar } from "@/components/collapsible-sidebar";
