@@ -2,6 +2,10 @@
 
 A sleek, intuitive tool for comparing and ranking images using Elo rating system. Perfect for testing image generation models, comparing design iterations, or just ranking your favorite photos!
 
+Try it out! 
+
+https://elopix.vercel.app/
+
 ## 🔗 Related Projects
 
 This tool is part of a larger ecosystem:
