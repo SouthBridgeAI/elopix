@@ -1,7 +1,7 @@
 {
   "name": "elopix",
-  "version": "0.6.0",
-  "private": true,
+  "version": "0.0.1",
+  "private": false,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -40,5 +40,24 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
-  }
+  },
+  "description": "A sleek, intuitive tool for comparing and ranking images using Elo rating system. Perfect for testing image generation models, comparing design iterations, or just ranking your favorite photos!",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SouthBridgeAI/elopix.git"
+  },
+  "keywords": [
+    "image-comparison",
+    "image-ranking",
+    "elo-rating",
+    "peference-data-collection",
+    "visual-comparison"
+  ],
+  "author": "Minu Choi",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/SouthBridgeAI/elopix/issues"
+  },
+  "homepage": "https://github.com/SouthBridgeAI/elopix#readme"
 }
