@@ -36,7 +36,7 @@ export default function Home() {
       <Dialog open={showInstructions} onOpenChange={setShowInstructions}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Welcome to Image Comparison</DialogTitle>
+            <DialogTitle>Welcome to Elopix!</DialogTitle>
             <DialogDescription className="space-y-4">
                 <div>Before starting, please ensure you have:</div>
                 <ol className="list-decimal ml-4 space-y-2">
