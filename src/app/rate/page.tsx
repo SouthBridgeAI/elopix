@@ -359,6 +359,11 @@ export default function PairwiseComparison() {
         </Popover>
         <Button onClick={downloadRankings}>Download Rankings</Button>
         <Button onClick={downloadWinLoss}>Download Win/Loss</Button>
+        <Button onClick={() => window.open('https://tally.so/embed/wvxPLv', '_blank')}
+          variant="outline"
+        >
+          Share Data
+        </Button>     
       </TopBar>
 
       <MainContent>
